@@ -185,3 +185,49 @@ df$Dwelltype[df$Dwelltype==""]<-"U"
 table(df$Dwelltype)
 str(df) #
 dfadm<-df[,c(1,3:69)]
+dfadm$admin<-ifelse(dfadm$ADMISSIONS==0,0,1)
+
+# checking for no factor columns
+str(dfadm)
+dfadm<-dfadm[,c(2:69)]
+
+set.seed(128)
+ind<-sample(2, nrow(dfadm), replace=TRUE,prob=c(0.8,0.2))
+train1<-dfadm[ind==1,]
+test1<-dfadm[ind==2,]
+
+mylogit<-glm(admin~.,data=train1)
+summary(mylogit)
+pred<-predict(mylogit,test1,type="response")
+model_pred_admit<-rep("0",8861)
+model_pred_admit[pred>0.05]<-"1"
+tab<-table(model_pred_admit,test1$admin)
+print(tab)
+1-sum(diag(tab))/sum(tab)
+
+# for admissions buckets
+dfadmb<-df[,c(1,3:69)]
+
+set.seed(130)
+ind<-sample(2, nrow(dfadmb), replace=TRUE,prob=c(0.8,0.2))
+trainb1<-dfadmb[ind==1,]
+testb1<-dfadmb[ind==2,]
+mylogit<-glm(ADMISSIONS~.,data=trainb1)
+summary(mylogit)
+pred<-predict(mylogit,testb1,type="response")
+model_pred_admit<-rep("0",8879)
+model_pred_admit[pred>0.05]<-"1"
+
+tab<-table(model_pred_admit,testb1$ADMISSIONS)
+1-sum(diag(tab))/sum(tab)
+train1<-df91[,-which(names(df91) == "Dwelltype")]
+mylogit<-glm(Admissions~.,data=train1)
+summary(mylogit)
+test1<-df101[,-which(names(df101)=="Dwelltype")]
+pred<-predict(mylogit,test1,type="response")
+probs <- exp(pred)/(1+exp(pred))
+model_pred_admit<-rep("0",8879)
+model_pred_admit[pred>0.25]<-"1"
+tab<-table(model_pred_admit,test1$Admissions)
+print(tab)
+1-sum(diag(tab))/sum(tab)
